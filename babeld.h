@@ -106,6 +106,9 @@ extern int protocol_socket;
 extern int kernel_socket;
 extern int max_request_hopcount;
 
+extern unsigned int per_byte_cost;
+extern unsigned short price_multiplier;
+
 void schedule_neighbours_check(int msecs, int override);
 void schedule_interfaces_check(int msecs, int override);
 int resize_receive_buffer(int size);

@@ -99,6 +99,11 @@ static int accept_local_connections(void);
 static void init_signals(void);
 static void dump_tables(FILE *out);
 
+// The cost to retransmit using this node
+unsigned int per_byte_cost = 0;
+// Multiplier to indicate how much the user values funds vs quality
+unsigned short price_multiplier = 1;
+
 static int
 kernel_route_notify(struct kernel_route *route, void *closure)
 {
@@ -172,7 +177,7 @@ main(int argc, char **argv)
 
     while(1) {
         opt = getopt(argc, argv,
-                     "m:p:h:H:i:k:A:srS:d:g:G:lwz:M:t:T:c:C:DL:I:V");
+                     "m:p:P:h:H:i:k:A:srS:d:g:G:lwz:M:a:t:T:c:C:DL:I:V");
         if(opt < 0)
             break;
 
@@ -196,6 +201,9 @@ main(int argc, char **argv)
             protocol_port = parse_nat(optarg);
             if(protocol_port <= 0 || protocol_port > 0xFFFF)
                 goto usage;
+            break;
+        case 'P':
+            per_byte_cost = parse_price(optarg);
             break;
         case 'h':
             default_wireless_hello_interval = parse_thousands(optarg);
@@ -276,6 +284,11 @@ main(int argc, char **argv)
             if(l < 0 || l > 3600)
                 goto usage;
             change_smoothing_half_life(l);
+            break;
+        }
+        case 'a': {
+            //Adjust price sensitivity
+            price_multiplier = parse_price(optarg);
             break;
         }
         case 't':
@@ -1070,13 +1083,16 @@ dump_route(FILE *out, struct babel_route *route)
         snprintf(channels + j, 100 - j, ")");
     }
 
-    fprintf(out, "%s%s%s metric %d (%d) refmetric %d id %s "
+    fprintf(out, "%s%s%s metric %d (%d) price %d refmetric %d id %s "
             "seqno %d%s age %d via %s neigh %s%s%s%s\n",
             format_prefix(route->src->prefix, route->src->plen),
             route->src->src_plen > 0 ? " from " : "",
             route->src->src_plen > 0 ?
             format_prefix(route->src->src_prefix, route->src->src_plen) : "",
-            route_metric(route), route_smoothed_metric(route), route->refmetric,
+            route_metric(route),
+            route_smoothed_metric(route),
+            route->price,
+            route->refmetric,
             format_eui64(route->src->id),
             (int)route->seqno,
             channels,
@@ -1092,12 +1108,13 @@ dump_route(FILE *out, struct babel_route *route)
 static void
 dump_xroute(FILE *out, struct xroute *xroute)
 {
-    fprintf(out, "%s%s%s metric %d (exported)\n",
+    fprintf(out, "%s%s%s metric %d price %d (exported)\n",
             format_prefix(xroute->prefix, xroute->plen),
             xroute->src_plen > 0 ? " from " : "",
             xroute->src_plen > 0 ?
             format_prefix(xroute->src_prefix, xroute->src_plen) : "",
-            xroute->metric);
+            xroute->metric,
+            xroute->price);
 }
 
 static void

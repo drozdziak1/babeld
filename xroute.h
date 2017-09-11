@@ -26,6 +26,7 @@ struct xroute {
     unsigned char src_prefix[16];
     unsigned char src_plen;
     unsigned short metric;
+    unsigned short price;
     unsigned int ifindex;
     int proto;
 };

@@ -37,6 +37,7 @@ THE SOFTWARE.
 #include "interface.h"
 #include "route.h"
 #include "kernel.h"
+#include "xroute.h"
 #include "configuration.h"
 #include "rule.h"
 
@@ -160,6 +161,24 @@ getint(int c, int *int_r, gnc_t gnc, void *closure)
     if(c < -1)
         return c;
     i = strtol(t, &end, 0);
+    if(*end != '\0') {
+        free(t);
+        return -2;
+    }
+    free(t);
+    *int_r = i;
+    return c;
+}
+
+static unsigned int
+getuint(int c, unsigned int *int_r, gnc_t gnc, void *closure)
+{
+    char *t, *end;
+    unsigned int i;
+    c = getword(c, &t, gnc, closure);
+    if(c < -1)
+        return c;
+    i = strtoul(t, &end, 0);
     if(*end != '\0') {
         free(t);
         return -2;
@@ -782,8 +801,9 @@ parse_option(int c, gnc_t gnc, void *closure, char *token)
            strcmp(token, "log-file") != 0 &&
            strcmp(token, "diversity") != 0 &&
            strcmp(token, "diversity-factor") != 0 &&
-           strcmp(token, "smoothing-half-life") != 0)
-            goto error;
+           strcmp(token, "smoothing-half-life") != 0 &&
+           strcmp(token, "price") != 0)
+        goto error;
     }
 
     if(strcmp(token, "protocol-port") == 0 ||
@@ -908,6 +928,13 @@ parse_option(int c, gnc_t gnc, void *closure, char *token)
         if(c < -1 || f < 0 || f > 256)
             goto error;
         diversity_factor = f;
+    } else if(strcmp(token, "price") == 0) {
+        unsigned int f = 0;
+        c = getuint(c, &f, gnc, closure);
+        if(c < -1 || f > 4294967295)
+            goto error;
+        per_byte_cost = f;
+        check_xroutes(1);
     } else if(strcmp(token, "smoothing-half-life") == 0) {
         int h;
         c = getint(c, &h, gnc, closure);

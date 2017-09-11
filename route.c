@@ -775,7 +775,7 @@ update_route_metric(struct babel_route *route)
             route->seqno = seqno_plus(route->src->seqno, 1);
             retract_route(route);
             if(oldmetric < INFINITY)
-                route_changed(route, route->src, oldmetric);
+                route_changed(route, route->src, oldmetric, route->price);
         }
     } else {
         struct neighbour *neigh = route->neigh;
@@ -789,7 +789,7 @@ update_route_metric(struct babel_route *route)
                             neighbour_cost(route->neigh), add_metric);
         if(route_metric(route) != oldmetric ||
            route_smoothed_metric(route) != old_smoothed_metric)
-            route_changed(route, route->src, oldmetric);
+            route_changed(route, route->src, oldmetric, route->price);
     }
 }
 
@@ -836,7 +836,7 @@ update_route(const unsigned char *id,
              const unsigned char *prefix, unsigned char plen,
              const unsigned char *src_prefix, unsigned char src_plen,
              unsigned short seqno, unsigned short refmetric,
-             unsigned short interval,
+             unsigned short interval, unsigned short price,
              struct neighbour *neigh, const unsigned char *nexthop,
              const unsigned char *channels, int channels_len)
 {
@@ -905,6 +905,8 @@ update_route(const unsigned char *id,
             }
         }
 
+        route->price = price + per_byte_cost;
+
         route->src = retain_source(src);
         if(refmetric < INFINITY)
             route->time = now.tv_sec;
@@ -934,7 +936,7 @@ update_route(const unsigned char *id,
                             refmetric, neighbour_cost(neigh), add_metric);
         route->hold_time = hold_time;
 
-        route_changed(route, oldsrc, oldmetric);
+        route_changed(route, oldsrc, oldmetric, route->price);
         if(!lost) {
             lost = oldinstalled &&
                 find_installed_route(prefix, plen, src_prefix, src_plen) == NULL;
@@ -963,6 +965,7 @@ update_route(const unsigned char *id,
         route->src = retain_source(src);
         route->refmetric = refmetric;
         route->cost = neighbour_cost(neigh);
+        route->price = price + per_byte_cost;
         route->add_metric = add_metric;
         route->seqno = seqno;
         route->neigh = neigh;
@@ -1028,6 +1031,7 @@ consider_route(struct babel_route *route)
 {
     struct babel_route *installed;
     struct xroute *xroute;
+    int route_sum_metric, installed_sum_metric;
 
     if(route->installed)
         return;
@@ -1053,8 +1057,10 @@ consider_route(struct babel_route *route)
     if(route_metric(installed) >= INFINITY)
         goto install;
 
-    if(route_metric(installed) >= route_metric(route) &&
-       route_smoothed_metric(installed) > route_smoothed_metric(route))
+    /* TODO check for edge cases (overflow) and add price multiplier */
+    installed_sum_metric = installed->price * price_multiplier + route_smoothed_metric(installed);
+    route_sum_metric = route->price * price_multiplier + route_smoothed_metric(route);
+    if(route_sum_metric < installed_sum_metric)
         goto install;
 
     return;
@@ -1082,7 +1088,7 @@ retract_neighbour_routes(struct neighbour *neigh)
                     unsigned short oldmetric = route_metric(r);
                     retract_route(r);
                     if(oldmetric != INFINITY)
-                        route_changed(r, r->src, oldmetric);
+                        route_changed(r, r->src, oldmetric, r->price);
                 }
             }
             r = r->next;
@@ -1149,7 +1155,8 @@ send_triggered_update(struct babel_route *route, struct source *oldsrc,
    send an update. */
 void
 route_changed(struct babel_route *route,
-              struct source *oldsrc, unsigned short oldmetric)
+              struct source *oldsrc, unsigned short oldmetric,
+              unsigned short oldprice)
 {
     if(route->installed) {
         struct babel_route *better_route;

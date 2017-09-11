@@ -41,6 +41,7 @@ struct babel_route {
     short channels_len;
     unsigned char *channels;
     struct babel_route *next;
+    unsigned int price;
 };
 
 #define ROUTE_ALL 0
@@ -110,7 +111,8 @@ struct babel_route *update_route(const unsigned char *id,
                            const unsigned char *src_prefix,
                            unsigned char src_plen,
                            unsigned short seqno, unsigned short refmetric,
-                           unsigned short interval, struct neighbour *neigh,
+                           unsigned short interval, unsigned short price,
+                           struct neighbour *neigh,
                            const unsigned char *nexthop,
                            const unsigned char *channels, int channels_len);
 void retract_neighbour_routes(struct neighbour *neigh);
@@ -121,6 +123,7 @@ void consider_route(struct babel_route *route);
 void send_triggered_update(struct babel_route *route,
                            struct source *oldsrc, unsigned oldmetric);
 void route_changed(struct babel_route *route,
-                   struct source *oldsrc, unsigned short oldmetric);
+                   struct source *oldsrc, unsigned short oldmetric,
+                   unsigned short oldprice);
 void route_lost(struct source *src, unsigned oldmetric);
 void expire_routes(void);

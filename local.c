@@ -240,13 +240,14 @@ local_notify_route_1(struct local_socket *s, struct babel_route *route, int kind
 
     rc = snprintf(buf, 512,
                   "%s route %lx prefix %s from %s installed %s "
-                  "id %s metric %d refmetric %d via %s if %s\n",
+                  "id %s metric %d price %u refmetric %d via %s if %s\n",
                   local_kind(kind),
                   (unsigned long)route,
                   dst_prefix, src_prefix,
                   route->installed ? "yes" : "no",
                   format_eui64(route->src->id),
-                  route_metric(route), route->refmetric,
+                  route_metric(route), route->price,
+                  route->refmetric,
                   format_address(route->neigh->address),
                   route->neigh->ifp->name);
 
@@ -274,12 +275,34 @@ local_notify_route(struct babel_route *route, int kind)
 }
 
 static void
+local_notify_price_1(struct local_socket *s)
+{
+    char buf[64];
+    int rc;
+    rc  = snprintf(buf, 64, "local price %d\n", per_byte_cost);
+
+    if(rc < 0 || rc >= 64)
+        goto fail;
+
+    rc = write_timeout(s->fd, buf, rc);
+    if(rc < 0)
+        goto fail;
+    return;
+
+ fail:
+    shutdown(s->fd, 1);
+    return;
+}
+
+static void
 local_notify_all_1(struct local_socket *s)
 {
     struct interface *ifp;
     struct neighbour *neigh;
     struct xroute_stream *xroutes;
     struct route_stream *routes;
+
+    local_notify_price_1(s);
 
     FOR_ALL_INTERFACES(ifp) {
         local_notify_interface_1(s, ifp, LOCAL_ADD);
