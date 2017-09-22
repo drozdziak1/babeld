@@ -1031,7 +1031,7 @@ consider_route(struct babel_route *route)
 {
     struct babel_route *installed;
     struct xroute *xroute;
-    int route_sum_metric, installed_sum_metric;
+    unsigned long route_sum_metric, installed_sum_metric;
 
     if(route->installed)
         return;
@@ -1058,8 +1058,8 @@ consider_route(struct babel_route *route)
         goto install;
 
     /* TODO check for edge cases (overflow) and add price multiplier */
-    installed_sum_metric = installed->price * price_multiplier + route_smoothed_metric(installed);
-    route_sum_metric = route->price * price_multiplier + route_smoothed_metric(route);
+    installed_sum_metric = installed->price + route_smoothed_metric(installed) * price_multiplier;
+    route_sum_metric = route->price + route_smoothed_metric(route) * price_multiplier;
     if(route_sum_metric < installed_sum_metric)
         goto install;
 
