@@ -421,7 +421,7 @@ local_header(struct local_socket *s)
     if(rc < 0)
         strncpy(host, "alamakota", 64);
 
-    rc = snprintf(buf, 512, "ALTHEA 0.1\nversion %s\nhost %s\nmy-id %s\nok\n",
+    rc = snprintf(buf, 512, "BABEL 1.0\nversion %s\nhost %s\nmy-id %s\nok\n",
                   BABELD_VERSION, host, format_eui64(myid));
     if(rc < 0 || rc >= 512)
         goto fail;
