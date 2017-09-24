@@ -41,7 +41,7 @@ THE SOFTWARE.
 #include "message.h"
 #include "configuration.h"
 
-unsigned char packet_header[4] = {42, 2};
+unsigned char packet_header[4] = {42, 3};
 
 int split_horizon = 1;
 
@@ -467,7 +467,7 @@ parse_packet(const unsigned char *from, struct interface *ifp,
         return;
     }
 
-    if(packet[1] != 2) {
+    if(packet[1] != 3) {
         fprintf(stderr,
                 "Received packet with unknown version %d on %s from %s.\n",
                 packet[1], ifp->name, format_address(from));
