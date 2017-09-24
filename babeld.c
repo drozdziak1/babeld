@@ -102,7 +102,7 @@ static void dump_tables(FILE *out);
 // The cost to retransmit using this node
 unsigned int per_byte_cost = 0;
 // Multiplier to indicate how much the user values funds vs quality
-// higher means quality is valued more
+// higher value means quality is valued more
 unsigned short price_multiplier = 1;
 
 static int
