@@ -6,10 +6,10 @@ else
   stdin=$(cat)
   input=$stdin
 fi
-set -eux
 
 # clear namespaces
 ip -all netns delete
+set -eux
 
 # add namespaces
 echo "adding nodes"

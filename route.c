@@ -833,12 +833,19 @@ update_interface_metric(struct interface *ifp)
 /* This is called whenever we receive an update. */
 struct babel_route *
 update_route(const unsigned char *id,
-             const unsigned char *prefix, unsigned char plen,
-             const unsigned char *src_prefix, unsigned char src_plen,
-             unsigned short seqno, unsigned short refmetric,
-             unsigned short interval, unsigned short price,
-             struct neighbour *neigh, const unsigned char *nexthop,
-             const unsigned char *channels, int channels_len)
+             const unsigned char *prefix,
+             unsigned char        plen,
+             const unsigned char *src_prefix,
+             unsigned char        src_plen,
+             unsigned short       seqno,
+             unsigned short       refmetric,
+             unsigned short       interval,
+             unsigned short       price,
+             struct neighbour    *neigh,
+             const unsigned char *nexthop,
+             const unsigned char *channels,
+             int                  channels_len,
+             unsigned int         full_path_rtt)
 {
     struct babel_route *route;
     struct source *src;
@@ -991,6 +998,9 @@ update_route(const unsigned char *id,
         }
         local_notify_route(route, LOCAL_ADD);
         consider_route(route);
+    }
+    if(full_path_rtt > 0) {
+        route->full_path_rtt = full_path_rtt;
     }
     return route;
 }

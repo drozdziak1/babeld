@@ -42,6 +42,7 @@ struct babel_route {
     unsigned char *channels;
     struct babel_route *next;
     unsigned int price;
+    unsigned int full_path_rtt;
 };
 
 #define ROUTE_ALL 0
@@ -114,7 +115,8 @@ struct babel_route *update_route(const unsigned char *id,
                            unsigned short interval, unsigned short price,
                            struct neighbour *neigh,
                            const unsigned char *nexthop,
-                           const unsigned char *channels, int channels_len);
+                           const unsigned char *channels, int channels_len,
+                           unsigned int full_path_rtt);
 void retract_neighbour_routes(struct neighbour *neigh);
 void send_unfeasible_request(struct neighbour *neigh, int force,
                              unsigned short seqno, unsigned short metric,

@@ -1087,7 +1087,7 @@ dump_route(FILE *out, struct babel_route *route)
         snprintf(channels + j, 100 - j, ")");
     }
 
-    fprintf(out, "%s%s%s metric %d (%d) price %d refmetric %d id %s "
+    fprintf(out, "%s%s%s metric %d (%d) price %d refmetric %d rtt %s id %s "
             "seqno %d%s age %d via %s neigh %s%s%s%s\n",
             format_prefix(route->src->prefix, route->src->plen),
             route->src->src_plen > 0 ? " from " : "",
@@ -1097,6 +1097,7 @@ dump_route(FILE *out, struct babel_route *route)
             route_smoothed_metric(route),
             route->price,
             route->refmetric,
+            format_thousands(route->full_path_rtt),
             format_eui64(route->src->id),
             (int)route->seqno,
             channels,

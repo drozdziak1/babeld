@@ -9,5 +9,6 @@ TAGS
 tags
 *.rej
 *.orig
+*.log
 *~
 \#*#

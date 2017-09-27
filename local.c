@@ -240,7 +240,7 @@ local_notify_route_1(struct local_socket *s, struct babel_route *route, int kind
 
     rc = snprintf(buf, 512,
                   "%s route %lx prefix %s from %s installed %s "
-                  "id %s metric %d price %u refmetric %d via %s if %s\n",
+                  "id %s metric %d price %u refmetric %d rtt %s via %s if %s\n",
                   local_kind(kind),
                   (unsigned long)route,
                   dst_prefix, src_prefix,
@@ -248,6 +248,7 @@ local_notify_route_1(struct local_socket *s, struct babel_route *route, int kind
                   format_eui64(route->src->id),
                   route_metric(route), route->price,
                   route->refmetric,
+                  format_thousands(route->full_path_rtt),
                   format_address(route->neigh->address),
                   route->neigh->ifp->name);
 
