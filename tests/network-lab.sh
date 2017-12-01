@@ -1,4 +1,4 @@
-#!bash
+#/usr/bin/env bash
 set +eux
 if [ "$1" == "-f" ]; then
   input=$(<"$2")
@@ -16,7 +16,7 @@ echo "adding nodes"
 for node in $(jq '.nodes | keys[]' <<< "$input")
 do
   # set up alias for later use
-  alias "n${node:1:-1}"="ip netns exec netlab-${node:1:-1}"  
+  alias "n${node:1:-1}"="ip netns exec netlab-${node:1:-1}"
   ip netns add "netlab-${node:1:-1}"
 done
 
