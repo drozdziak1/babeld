@@ -1,8 +1,8 @@
 #/usr/bin/env bash
 set -eux
 
-export LABPATH=./
-export BABELPATH=../babeld
+export LABPATH=${LABPATH:=./network-lab.sh}
+export BABELPATH=${BABELPATH:=../babeld}
 
 # This is a basic integration test for the Althea fork of Babeld, it focuses on
 # validating that instances actually come up and communicate
@@ -40,7 +40,7 @@ cleanup()
 
 cleanup
 
- source $LABPATH/network-lab.sh << EOF
+ source $LABPATH << EOF
 {
   "nodes": {
     "1": { "ip": "1.0.0.1" },
@@ -67,12 +67,12 @@ EOF
 
 ip netns exec netlab-1 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-1 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-1 ../babeld -I babeld-n1.pid -d 3 -L babeld-n1.log -P 5 -w veth-1-2 -C 'default max-rtt-penalty 100' -C 'default enable-timestamps true' &
+ip netns exec netlab-1 $BABELPATH -I babeld-n1.pid -d 3 -L babeld-n1.log -P 5 -w veth-1-2 -C 'default max-rtt-penalty 100' -C 'default enable-timestamps true' &
 
 ip netns exec netlab-2 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-2 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-2 ../babeld -I babeld-n2.pid -d 3 -L babeld-n2.log -P 10 -w veth-2-1 -w veth-2-3 -C 'default max-rtt-penalty 100' -C 'default enable-timestamps true' &
+ip netns exec netlab-2 $BABELPATH -I babeld-n2.pid -d 3 -L babeld-n2.log -P 10 -w veth-2-1 -w veth-2-3 -C 'default max-rtt-penalty 100' -C 'default enable-timestamps true' &
 
 ip netns exec netlab-3 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-3 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-3 ../babeld -I babeld-n3.pid -d 3 -P 1 -w veth-3-2 -C 'default max-rtt-penalty 100' -C 'default enable-timestamps true'
+ip netns exec netlab-3 $BABELPATH -I babeld-n3.pid -d 3 -P 1 -w veth-3-2 -C 'default max-rtt-penalty 100' -C 'default enable-timestamps true'
