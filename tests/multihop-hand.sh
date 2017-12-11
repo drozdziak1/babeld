@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -eux
 
+BABELPATH=${BABELPATH:=../babeld}
+CONFIGPORT=${CONFIGPORT:=6126}
 GDBPATH=${GDBPATH:=gdb}
-
-export LABPATH=${LABPATH:=./network-lab.sh}
-export BABELPATH=${BABELPATH:=../babeld}
+LABPATH=${LABPATH:=./network-lab.sh}
 
 # This is a basic integration test for the Althea fork of Babeld, it focuses on
 # validating that instances actually come up and communicate
@@ -91,16 +91,20 @@ EOF
 
 ip netns exec netlab-1 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-1 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-1 $BABELPATH -I babeld-n1.pid -d 1 -L babeld-n1.log -P 5 -w veth-1-2 veth-1-4 &
+ip netns exec netlab-1 ip link set up dev lo
+ip netns exec netlab-1 $BABELPATH -G $CONFIGPORT -I babeld-n1.pid -d 1 -L babeld-n1.log -P 5 -w veth-1-2 veth-1-4 &
 
 ip netns exec netlab-2 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-2 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-2 $BABELPATH -I babeld-n2.pid -d 1 -L babeld-n2.log -P 10 -w veth-2-1 -w veth-2-3 &
+ip netns exec netlab-2 ip link set up dev lo
+ip netns exec netlab-2 $BABELPATH -G $CONFIGPORT -I babeld-n2.pid -d 1 -L babeld-n2.log -P 10 -w veth-2-1 -w veth-2-3 &
 
 ip netns exec netlab-3 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-3 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-3 $BABELPATH -I babeld-n3.pid -d 1 -L babeld-n3.log -P 1 -w veth-3-2 veth-3-4 &
+ip netns exec netlab-3 ip link set up dev lo
+ip netns exec netlab-3 $BABELPATH -G $CONFIGPORT -I babeld-n3.pid -d 1 -L babeld-n3.log -P 1 -w veth-3-2 veth-3-4 &
 
 ip netns exec netlab-4 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-4 sysctl -w net.ipv6.conf.all.forwarding=1
-ip netns exec netlab-4 $GDBPATH --args $BABELPATH -I babeld-n4.pid -d 1 -L babeld-n4.log -P 15 -w veth-4-1 veth-4-3
+ip netns exec netlab-4 ip link set up dev lo
+ip netns exec netlab-4 $GDBPATH --args $BABELPATH -G $CONFIGPORT -I babeld-n4.pid -d 1 -L babeld-n4.log -P 15 -w veth-4-1 veth-4-3

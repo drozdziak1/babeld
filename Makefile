@@ -1,11 +1,11 @@
 PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man
 
-CDEBUGFLAGS = -Os -g -Wall
+CDEBUGFLAGS = -O0 -g -Wall $(DEFINES) $(EXTRA_DEFINES)
 
 DEFINES = $(PLATFORM_DEFINES)
 
-CFLAGS = $(CDEBUGFLAGS) $(DEFINES) $(EXTRA_DEFINES)
+CFLAGS = -Os -Wall $(DEFINES) $(EXTRA_DEFINES)
 
 LDLIBS = -lrt
 
@@ -19,6 +19,9 @@ OBJS = babeld.o net.o kernel.o util.o interface.o source.o neighbour.o \
 
 babeld: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o babeld $(OBJS) $(LDLIBS)
+
+debug:
+	$(MAKE) "CFLAGS=$(CDEBUGFLAGS)" babeld
 
 babeld.o: babeld.c version.h
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -eux
 
-export LABPATH=${LABPATH:=./network-lab.sh}
-export BABELPATH=${BABELPATH:=../babeld}
+BABELPATH=${BABELPATH:=../babeld}
+LABPATH=${LABPATH:=./network-lab.sh}
 
 # This is a basic integration test for the Althea fork of Babeld, it focuses on
 # validating that instances actually come up and communicate
