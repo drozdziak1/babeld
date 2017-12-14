@@ -1087,8 +1087,8 @@ dump_route(FILE *out, struct babel_route *route)
         snprintf(channels + j, 100 - j, ")");
     }
 
-    fprintf(out, "%s%s%s metric %d (%d) price %d refmetric %d rtt %s id %s "
-            "seqno %d%s age %d via %s neigh %s%s%s%s\n",
+    fprintf(out, "%s%s%s metric %d (%d) price %d refmetric %d full-path-rtt %s "
+            "id %s seqno %d%s age %d via %s neigh %s%s%s%s\n",
             format_prefix(route->src->prefix, route->src->plen),
             route->src->src_plen > 0 ? " from " : "",
             route->src->src_plen > 0 ?

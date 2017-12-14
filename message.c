@@ -177,9 +177,9 @@ parse_update_subtlv(struct interface *ifp, int metric, int ae,
             if(ae == 1)
                 (*src_plen) += 96;
         } else if(type == SUBTLV_PATH_RTT) {
-            memcpy(timestamp, a + i + 2, 4);
+            DO_NTOHL(*timestamp, a + i + 2);
             have_timestamp = 1;
-            printf("Hey look at me I've got a path rtt subtlv with value %s\n", format_thousands(*timestamp));
+            debugf("Hey look at me I've got a path rtt subtlv with value %s\n", format_thousands(*timestamp));
         } else {
             debugf("Received unknown%s Update sub-TLV %d.\n",
                    (type & 0x80) != 0 ? " mandatory" : "", type);
@@ -740,7 +740,11 @@ parse_packet(const unsigned char *from, struct interface *ifp,
             if(rc < 0)
                 goto done;
             if(have_rtt_return && neigh->rtt) {
+                // We captured a full path rtt and have a neigh rtt to attach
                 path_rtt += neigh->rtt;
+            } else {
+                // No full path rtt for this source through this neigh
+                path_rtt = 0;
             }
             is_ss = !is_default(src_prefix, src_plen);
             debugf("Received update%s%s for dst %s%s%s from %s on %s (full-path-rtt %d).\n",
@@ -1345,7 +1349,6 @@ really_send_update(struct interface *ifp,
     accumulate_int(ifp, price);
     accumulate_prefix(ifp, omit, real_prefix, real_plen);
     /* Note that an empty channels TLV is different from no such TLV. */
-<<<<<<< HEAD
     if(channels_size > 0) {
         accumulate_byte(ifp, 2);
         accumulate_byte(ifp, channels_len);
@@ -1902,7 +1905,6 @@ send_request(struct interface *ifp,
     start_message(ifp, MESSAGE_REQUEST, len);
     accumulate_byte(ifp, v4 ? 1 : 2);
     accumulate_byte(ifp, v4 ? plen - 96 : plen);
-    if(v4)
         accumulate_prefix(ifp, 0, prefix + 12, plen - 96);
     else
         accumulate_prefix(ifp, 0, prefix, plen);
