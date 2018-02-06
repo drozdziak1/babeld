@@ -747,7 +747,7 @@ parse_packet(const unsigned char *from, struct interface *ifp,
                 path_rtt = 0;
             }
             is_ss = !is_default(src_prefix, src_plen);
-            debugf("Received update%s%s for dst %s%s%s from %s on %s (full-path-rtt %d).\n",
+            debugf("Received update%s%s for dst %s%s%s from %s on %s (full-path-rtt %s).\n",
                    (message[3] & 0x80) ? "/prefix" : "",
                    (message[3] & 0x40) ? "/id" : "",
                    format_prefix(prefix, plen),
@@ -1905,6 +1905,7 @@ send_request(struct interface *ifp,
     start_message(ifp, MESSAGE_REQUEST, len);
     accumulate_byte(ifp, v4 ? 1 : 2);
     accumulate_byte(ifp, v4 ? plen - 96 : plen);
+    if(v4)
         accumulate_prefix(ifp, 0, prefix + 12, plen - 96);
     else
         accumulate_prefix(ifp, 0, prefix, plen);
