@@ -6,4 +6,5 @@ env:
 - TEST='lint'
 - TEST='build'
 - TEST='integration'
+- TEST='compat' BABELD_B_REVISION='f03a5b2b9960d09f7ab73f000c6bc63b83e0a86d'
 script: CI=True ./test.sh

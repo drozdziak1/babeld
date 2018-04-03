@@ -9,7 +9,10 @@ TAGS
 tags
 *.rej
 *.orig
-*.log
 *~
 \#*#
+
+# Test artifacts
+tests/babel_*
 *.pid
+*.log

@@ -37,10 +37,22 @@ run_lint()
 run_integration_tests()
 {
         pushd tests
-                sudo bash ./multihop-smoketest.sh
+                sudo -E ./multihop-smoketest.sh
 		if [ $? -ne 0 ]
 		then
 			echo "Integration test failed!"
+			exit 1
+		fi
+        popd
+}
+
+run_compat_tests()
+{
+        pushd tests
+		sudo -E ./multihop-compat.sh
+		if [ $? -ne 0 ]
+		then
+			echo "Compatibility tests failed!"
 			exit 1
 		fi
         popd
@@ -51,15 +63,24 @@ if [ -z "$CI" ]; then
 	build_babel
 	run_lint
 	run_integration_tests
+	run_compat_tests
 else
-	if [ "$TEST" == "lint" ]; then
-		run_lint
-	elif [ "$TEST" == "build" ]; then
-		build_babel
-	elif [ "$TEST" == "integration" ]; then
-		build_babel
-		run_integration_tests
-	else
-		echo "Unknown test \"$TEST\" (valid values: {lint|build|integration})"
-	fi
+	case $TEST in
+		"lint")
+			run_lint
+			;;
+		"build")
+			build_babel
+			;;
+		"integration")
+			build_babel
+			run_integration_tests
+			;;
+		"compat")
+			run_compat_tests
+			;;
+		*)
+			echo "Unknown test \"$TEST\" (valid values: {lint|build|integration})"
+			;;
+	esac
 fi
