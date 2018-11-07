@@ -445,13 +445,15 @@ main(int argc, char **argv)
         }
 
         pfd = open(pidfile, O_WRONLY | O_CREAT | O_EXCL, 0644);
-        if(pfd < 0) {
-            char buf[40];
-            snprintf(buf, 40, "creat(%s)", pidfile);
-            buf[39] = '\0';
-            perror(buf);
-            exit(1);
-        }
+        /*
+         *if(pfd < 0) {
+         *    char buf[40];
+         *    snprintf(buf, 40, "creat(%s)", pidfile);
+         *    buf[39] = '\0';
+         *    perror(buf);
+         *    exit(1);
+         *}
+         */
 
         rc = write(pfd, buf, len);
         if(rc < len) {

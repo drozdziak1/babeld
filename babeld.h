@@ -27,7 +27,6 @@ THE SOFTWARE.
 #endif
 
 #define RTPROT_BABEL_LOCAL -2
-
 #undef MAX
 #undef MIN
 

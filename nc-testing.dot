@@ -1,0 +1,10 @@
+graph {
+	babel [ip = "fd::1/128"];
+	nc [ip = "fd::2/128"];
+
+	babel -- nc;
+	/*
+	 *A -- C;
+	 *B -- D;
+	 */
+}
