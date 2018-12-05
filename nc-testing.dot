@@ -1,5 +1,5 @@
 graph {
-	babel [ip = "fd::1/128"];
+	babel [ip = "fd::1/128", command = "./run_babeld.py"];
 	nc [ip = "fd::2/128"];
 
 	babel -- nc;

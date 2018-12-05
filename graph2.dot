@@ -1,0 +1,11 @@
+graph {
+	A [ip = "fd::1/128", fee = 15, command = "echo hi"];
+	B [ip = "fd::2/128", fee = 32, command = "echo hi"];
+	C [ip = "fd::3/128", fee = 15, command = "echo hi"];
+	D [ip = "fd::4/128", fee = 42, command = "echo hi"];
+
+	A -- B [packet_loss = 0.35];
+	B -- C [packet_loss = 0.43];
+	C -- D;
+	D -- A;
+}
