@@ -840,7 +840,7 @@ update_route(const unsigned char *id,
              unsigned short       seqno,
              unsigned short       refmetric,
              unsigned short       interval,
-             unsigned short       price,
+             uint32_t             price,
              struct neighbour    *neigh,
              const unsigned char *nexthop,
              const unsigned char *channels,
@@ -912,7 +912,7 @@ update_route(const unsigned char *id,
             }
         }
 
-        route->price = price + per_byte_cost;
+        route->price = price + fee;
 
         route->src = retain_source(src);
         if(refmetric < INFINITY)
@@ -972,7 +972,7 @@ update_route(const unsigned char *id,
         route->src = retain_source(src);
         route->refmetric = refmetric;
         route->cost = neighbour_cost(neigh);
-        route->price = price + per_byte_cost;
+        route->price = price + fee;
         route->add_metric = add_metric;
         route->seqno = seqno;
         route->neigh = neigh;
@@ -1066,8 +1066,8 @@ consider_route(struct babel_route *route)
         goto install;
 
 
-    installed_sum_metric = installed->price + (route_smoothed_metric(installed) * price_multiplier);
-    route_sum_metric = route->price + (route_smoothed_metric(route) * price_multiplier);
+    installed_sum_metric = installed->price + route_smoothed_metric(installed) * quality_multiplier;
+    route_sum_metric = route->price + route_smoothed_metric(route) * quality_multiplier;
     if(route_sum_metric < installed_sum_metric)
         goto install;
 
@@ -1164,7 +1164,7 @@ send_triggered_update(struct babel_route *route, struct source *oldsrc,
 void
 route_changed(struct babel_route *route,
               struct source *oldsrc, unsigned short oldmetric,
-              unsigned short oldprice)
+              uint32_t oldprice)
 {
     if(route->installed) {
         struct babel_route *better_route;

@@ -54,23 +54,23 @@ cleanup
   "edges": [
      {
       "nodes": ["1", "2"],
-      "->": "loss random 0%",
-      "<-": "loss random 0%"
+      "->": "",
+      "<-": ""
      },
      {
       "nodes": ["2", "3"],
-      "->": "loss random 0%",
-      "<-": "loss random 0%"
+      "->": "",
+      "<-": ""
      },
      {
       "nodes": ["3", "4"],
-      "->": "loss random 0%",
-      "<-": "loss random 0%"
+      "->": "",
+      "<-": ""
      },
      {
       "nodes": ["4", "1"],
-      "->": "loss random 0%",
-      "<-": "loss random 0%"
+      "->": "",
+      "<-": ""
      }
   ]
 }
@@ -85,26 +85,26 @@ cat << EOF
 netlab-1 (price \$5)                 netlab-3 (price \$1)
    \\                                    /
     \\                                  /
-     \`---- netlab-4 (price \$15) -----\`
+     \`---- netlab-4 (price \$7) ------\`
 
 EOF
 
 ip netns exec netlab-1 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-1 sysctl -w net.ipv6.conf.all.forwarding=1
 ip netns exec netlab-1 ip link set up dev lo
-ip netns exec netlab-1 $BABELPATH -G $CONFIGPORT -I babeld-n1.pid -d 1 -L babeld-n1.log -P 5 -w veth-1-2 veth-1-4 &
+ip netns exec netlab-1 $BABELPATH -G $CONFIGPORT -I babeld-n1.pid -d 1 -L babeld-n1.log -F 5 -w veth-1-2 veth-1-4 &
 
 ip netns exec netlab-2 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-2 sysctl -w net.ipv6.conf.all.forwarding=1
 ip netns exec netlab-2 ip link set up dev lo
-ip netns exec netlab-2 $BABELPATH -G $CONFIGPORT -I babeld-n2.pid -d 1 -L babeld-n2.log -P 10 -w veth-2-1 -w veth-2-3 &
+ip netns exec netlab-2 $BABELPATH -G $CONFIGPORT -I babeld-n2.pid -d 1 -L babeld-n2.log -F 10 -w veth-2-1 -w veth-2-3 &
 
 ip netns exec netlab-3 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-3 sysctl -w net.ipv6.conf.all.forwarding=1
 ip netns exec netlab-3 ip link set up dev lo
-ip netns exec netlab-3 $BABELPATH -G $CONFIGPORT -I babeld-n3.pid -d 1 -L babeld-n3.log -P 1 -w veth-3-2 veth-3-4 &
+ip netns exec netlab-3 $BABELPATH -G $CONFIGPORT -I babeld-n3.pid -d 1 -L babeld-n3.log -F 1 -w veth-3-2 veth-3-4 &
 
 ip netns exec netlab-4 sysctl -w net.ipv4.ip_forward=1
 ip netns exec netlab-4 sysctl -w net.ipv6.conf.all.forwarding=1
 ip netns exec netlab-4 ip link set up dev lo
-ip netns exec netlab-4 $GDBPATH --args $BABELPATH -G $CONFIGPORT -I babeld-n4.pid -d 1 -L babeld-n4.log -P 15 -w veth-4-1 veth-4-3
+ip netns exec netlab-4 $GDBPATH --args $BABELPATH -G $CONFIGPORT -I babeld-n4.pid -d 1 -L babeld-n4.log -F 7 -w veth-4-1 veth-4-3

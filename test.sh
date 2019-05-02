@@ -7,7 +7,7 @@ TEST=${TEST:=""}
 check_deps()
 {
         if !hash cppcheck 2>/dev/null; then
-               echo "Please install cppchecki"
+               echo "Please install cppcheck"
         fi
 }
 

@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -99,11 +100,14 @@ static int accept_local_connections(void);
 static void init_signals(void);
 static void dump_tables(FILE *out);
 
-// The cost to retransmit using this node
-unsigned int per_byte_cost = 0;
-// Multiplier to indicate how much the user values funds vs quality
-// higher value means quality is valued more
-unsigned short price_multiplier = 1;
+// The cost to forward through us
+uint32_t fee = 0;
+
+/**
+ * A multiplier to indicate how much the user values quality vs. price metrics;
+ * higher value means quality is valued more
+ */
+uint16_t quality_multiplier = 1;
 
 static int
 kernel_route_notify(struct kernel_route *route, void *closure)
@@ -178,7 +182,7 @@ main(int argc, char **argv)
 
     while(1) {
         opt = getopt(argc, argv,
-                     "m:p:P:h:H:i:k:A:srS:d:g:G:lwz:M:a:t:T:c:C:DL:I:V");
+                     "m:p:F:h:H:i:k:A:srS:d:g:G:lwz:M:a:t:T:c:C:DL:I:V");
         if(opt < 0)
             break;
 
@@ -202,9 +206,6 @@ main(int argc, char **argv)
             protocol_port = parse_nat(optarg);
             if(protocol_port <= 0 || protocol_port > 0xFFFF)
                 goto usage;
-            break;
-        case 'P':
-            per_byte_cost = parse_price(optarg);
             break;
         case 'h':
             default_wireless_hello_interval = parse_thousands(optarg);
@@ -287,12 +288,34 @@ main(int argc, char **argv)
             change_smoothing_half_life(l);
             break;
         }
-        case 'a': {
-            //Adjust price sensitivity
-            unsigned int a = parse_price(optarg);
-            if(a > 65535)
+        case 'F': {
+            char *endptr = optarg;
+            unsigned long a = strtoul(optarg, &endptr, 0);
+            errno = 0;
+
+            // Display help if strtoul() fails or the value won't fit
+            if(a > UINT32_MAX || endptr == optarg || errno) {
+                fprintf(stderr, "Couldn't parse the price: %s\n",
+                        optarg);
                 goto usage;
-            price_multiplier = a;
+            }
+
+            fee = a;
+            break;
+        }
+        case 'a': {
+            char *endptr = optarg;
+            unsigned long a = strtoul(optarg, &endptr, 0);
+            errno = 0;
+
+            // Display help if strtoul() fails or the value won't fit
+            if(a > UINT16_MAX || endptr == optarg || errno) {
+                fprintf(stderr, "Couldn't parse the quality multiplier: %s\n",
+                        optarg);
+                goto usage;
+            }
+
+            quality_multiplier = a;
             break;
         }
         case 't':
@@ -883,6 +906,8 @@ main(int argc, char **argv)
             "               "
             "[-d level] [-D] [-L logfile] [-I pidfile]\n"
             "               "
+            "[-F fee] [-a multiplier]\n"
+            "               "
             "interface...\n",
             BABELD_VERSION);
     exit(1);
@@ -1087,7 +1112,7 @@ dump_route(FILE *out, struct babel_route *route)
         snprintf(channels + j, 100 - j, ")");
     }
 
-    fprintf(out, "%s%s%s metric %d (%d) price %d refmetric %d full-path-rtt %s "
+    fprintf(out, "%s%s%s metric %d (%d) price %u fee %d refmetric %d full-path-rtt %s "
             "id %s seqno %d%s age %d via %s neigh %s%s%s%s\n",
             format_prefix(route->src->prefix, route->src->plen),
             route->src->src_plen > 0 ? " from " : "",
@@ -1095,7 +1120,8 @@ dump_route(FILE *out, struct babel_route *route)
             format_prefix(route->src->src_prefix, route->src->src_plen) : "",
             route_metric(route),
             route_smoothed_metric(route),
-            route->price,
+            route->price - fee, // I *myself* get there for $X...
+            fee,                // ...and I *charge* others $Y
             route->refmetric,
             format_thousands(route->full_path_rtt),
             format_eui64(route->src->id),
